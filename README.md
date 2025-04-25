@@ -1,4 +1,4 @@
- rag_lawyer/
+ 	rag_lawyer/
 	├── app/
 	│   ├── main.py              # API FastAPI
 	│   ├── rag_chain.py         # Logique RAG
