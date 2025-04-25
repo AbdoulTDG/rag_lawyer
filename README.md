@@ -8,7 +8,7 @@
 	└── .env
 
 
-     		[ MongoDB ]
+     	[ MongoDB ]
 	              |
 	              |     (1. Extraction)
 	              v
@@ -30,4 +30,4 @@
 	        [ LLM (ex: GPT, Mistral) ]
 	              |
 	              v
-         [ Réponse générée ]![image](https://github.com/user-attachments/assets/3b5248e9-5e42-4d73-8e9b-0862e0325cf1)
+         [ Réponse générée ]
