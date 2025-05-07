@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+
+  mongo:
+    image: mongo:6
+    container_name: mongo_rag
+    restart: always
+    ports:
+      - "27017:27017"
+    # volumes:
+      # - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ragdb
+      MONGO_INITDB_ROOT_USERNAME: raguser
+      MONGO_INITDB_ROOT_PASSWORD: ragpass
+    networks:
+      - rag-net
+
+  rag-api:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: rag-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - rag-net
+
+  rag-ui:
+    build:
+      context: .
+      dockerfile: ui/dockerfile
+    container_name: rag-ui
+    ports:
+      - "8501:8501"
+    depends_on:
+      - rag-api
+    environment:
+      - API_URL=http://rag-api:8000/ask  # Important : nom du service Docker
+    networks:
+      - rag-net
+
+networks:
+  rag-net:
+    driver: bridge

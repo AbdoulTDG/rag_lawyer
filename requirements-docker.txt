@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-openai
-langchain
-faiss-cpu
-pymongo
-tiktoken
-python-dotenv
-streamlit

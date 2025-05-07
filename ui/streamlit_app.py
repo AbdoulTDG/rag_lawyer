@@ -1,7 +1,9 @@
 import streamlit as st
 import requests
+import os
 
 API_URL = "http://localhost:8000/ask"  # Modifie si tu déploies ailleurs
+# API_URL = os.getenv("API_URL", "http://localhost:8000/ask")  # fallback pour local
 
 st.title("💬 Chatbot RAG spécialisé")
 st.write("Pose une question sur ton domaine...")

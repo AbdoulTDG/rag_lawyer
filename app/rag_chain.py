@@ -1,10 +1,11 @@
 from pymongo import MongoClient
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_community.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
+from langchain_community.llms import Ollama
 import os
 
 def build_qa_chain():
@@ -13,19 +14,21 @@ def build_qa_chain():
     collection_name = os.getenv("COLLECTION_NAME")
     text_field = os.getenv("TEXT_FIELD", "texte")
 
-    # MongoDB
+    # Connexion à MongoDB
     client = MongoClient(mongo_uri)
     collection = client[db_name][collection_name]
     texts = [doc[text_field] for doc in collection.find({}, {text_field: 1}) if text_field in doc]
 
-    # Split + embeddings
+    # Séparation des textes
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     docs = [Document(page_content=chunk) for text in texts for chunk in splitter.split_text(text)]
     
+    # Vectorisation des textes
     embeddings = OpenAIEmbeddings()
     vectorstore = FAISS.from_documents(docs, embeddings)
     
     retriever = vectorstore.as_retriever()
-    llm = ChatOpenAI(temperature=0)
+    # llm = ChatOpenAI(temperature=0)
+    llm_ollama = Ollama(model="mistral")
     
-    return RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
+    return RetrievalQA.from_chain_type(llm=llm_ollama, retriever=retriever)
