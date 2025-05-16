@@ -8,3 +8,5 @@ tiktoken
 python-dotenv
 streamlit
 langchain-community
+pydantic
+sentence-transformers

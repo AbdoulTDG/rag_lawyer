@@ -10,5 +10,5 @@ class QueryModel(BaseModel):
 
 @app.post("/ask")
 def ask_question(query: QueryModel):
-    response = qa_chain.run(query.question)
+    response = qa_chain.invoke(query.question)
     return {"answer": response}
