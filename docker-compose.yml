@@ -15,22 +15,22 @@ services:
     networks:
       - rag-net
 
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    restart: always
-    ports:
-      - "11434:11434"  # Port par défaut d’Ollama
-    volumes:
-      - ./ollama_data:/root/.ollama  # Pour persister les modèles téléchargés
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "ollama serve & 
-      sleep 5 && 
-      ollama pull llama3 && 
-      wait"
-    networks:
-      - rag-net
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: ollama
+  #   restart: always
+  #   ports:
+  #     - "11434:11434"  # Port par défaut d’Ollama
+  #   volumes:
+  #     - ./ollama_data:/root/.ollama  # Pour persister les modèles téléchargés
+  #   entrypoint: ["/bin/sh", "-c"]
+  #   command: >
+  #     "ollama serve & 
+  #     sleep 5 && 
+  #     ollama pull mistral && 
+  #     wait"
+  #   networks:
+  #     - rag-net
 
   rag-api:
     build:
@@ -41,10 +41,10 @@ services:
       - "8000:8000"
     env_file:
       - .env
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434  # URL du service Ollama depuis l'API
+    # environment:
+      # - OLLAMA_BASE_URL=http://ollama:11434  # URL du service Ollama depuis l'API
     depends_on:
-      - ollama
+      # - ollama
       - mongo
     networks:
       - rag-net
@@ -67,5 +67,5 @@ networks:
   rag-net:
     driver: bridge
 
-volumes:
-  ollama_data:
+# volumes:
+#   ollama_data:

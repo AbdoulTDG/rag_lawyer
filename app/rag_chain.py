@@ -5,10 +5,12 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
-from langchain_community.llms import Ollama
+from langchain.chains import RetrievalQA,LLMChain
+from langchain.prompts import PromptTemplate
+from langchain_community.llms import HuggingFacePipeline #Ollama
 import os
 import tqdm
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline,AutoModelForSeq2SeqLM
 
 def build_qa_chain():
 
@@ -43,10 +45,33 @@ def build_qa_chain():
     # Vectorisation des textes
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = FAISS.from_documents(docs, embeddings)
-    
     retriever = vectorstore.as_retriever()
     # llm = ChatOpenAI(temperature=0)
     # llm_ollama = Ollama(model="mistral")
-    llm_ollama = Ollama(model="llama3",base_url="http://ollama:11434")
+    # llm_ollama = Ollama(model="mistral",base_url="http://ollama:11434")
+
+    # Chargement du modèle Hugging Face
+    model_name = "google/flan-t5-small"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    pipe = pipeline("text2text-generation", model=model, tokenizer=tokenizer, max_new_tokens=500)
+    llm = HuggingFacePipeline(pipeline=pipe)
+
+    # Prompt personnalisé
+    prompt_template = PromptTemplate(
+    input_variables=["context", "question"],
+    template="Contexte : {context}\n\nQuestion : {question}\n\nRéponse :"
+    )
+
+    # Construction de la chaîne QA avec prompt custom
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        chain_type="stuff",  # important
+        chain_type_kwargs={"prompt": prompt_template}
+    )
+
     
-    return RetrievalQA.from_chain_type(llm=llm_ollama, retriever=retriever)
+    return qa_chain
+
+# RetrievalQA.from_chain_type(llm=llm, retriever=retriever)

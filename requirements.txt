@@ -10,3 +10,6 @@ streamlit
 langchain-community
 pydantic
 sentence-transformers
+transformers 
+accelerate
+langchain_huggingface
