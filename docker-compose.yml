@@ -1,19 +1,19 @@
 services:
 
-  mongo:
-    image: mongo:6
-    container_name: mongo_rag
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - ./mongo-data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: ragdb
-      MONGO_INITDB_ROOT_USERNAME: raguser
-      MONGO_INITDB_ROOT_PASSWORD: ragpass
-    networks:
-      - rag-net
+  # mongo:
+  #   image: mongo:6
+  #   container_name: mongo_rag
+  #   restart: always
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - ./mongo-data:/data/db
+  #   environment:
+  #     MONGO_INITDB_DATABASE: ragdb
+  #     MONGO_INITDB_ROOT_USERNAME: raguser
+  #     MONGO_INITDB_ROOT_PASSWORD: ragpass
+  #   networks:
+  #     - rag-net
 
   ollama:
     image: ollama/ollama
@@ -29,6 +29,13 @@ services:
       sleep 5 && 
       ollama pull llama3 && 
       wait"
+    # command: >
+    #   /bin/sh -c "
+    #     ollama serve & 
+    #     sleep 5 && 
+    #     ollama pull llama3 && 
+    #     wait
+    #   "
     networks:
       - rag-net
 
@@ -45,7 +52,7 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434  # URL du service Ollama depuis l'API
     depends_on:
       - ollama
-      - mongo
+      #- mongo
     networks:
       - rag-net
 
