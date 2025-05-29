@@ -1,0 +1,6 @@
+qdrant-client
+sentence-transformers
+langchain
+pymupdf
+numpy
+pymongo

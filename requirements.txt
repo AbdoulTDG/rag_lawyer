@@ -2,7 +2,7 @@ fastapi
 uvicorn
 openai
 langchain
-faiss-cpu
+# faiss-cpu
 pymongo
 tiktoken
 python-dotenv
@@ -13,3 +13,4 @@ sentence-transformers
 transformers 
 accelerate
 langchain_huggingface
+qdrant_client
