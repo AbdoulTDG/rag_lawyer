@@ -14,43 +14,117 @@ import os
 import tqdm
 from dotenv import load_dotenv
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline,AutoModelForSeq2SeqLM
+from sentence_transformers import SentenceTransformer
 
 load_dotenv()
 
-def build_qa_chain():
+# ask_rag.py
 
-    # Paramètres Qdrant
-    QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
-    QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
-    QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", "rgpd_chunks")
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from sentence_transformers import SentenceTransformer
+import requests
 
-    # Connexion à la BDD vectorielle
-    qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
-    
-    
-    # Vectorisation des textes
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    # Connexion au vectorstore avec LangChain
-    vectorstore = Qdrant(
-        client=qdrant_client,
-        collection_name=QDRANT_COLLECTION_NAME,
-        embeddings=embeddings
+# === CONFIGURATION ===
+LLM_API_URL = "http://ollama:11434/api/generate"  # Nom du conteneur Docker
+COLLECTION_NAME = "rgpd_chunks"
+QDRANT_HOST = "qdrant"
+QDRANT_PORT = 6333
+
+# === INITIALISATION ===
+app = FastAPI()
+# Chargement du modèle d'embedding
+embedder = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+# Connexion à Qdrant
+qdrant = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+
+
+class QuestionRequest(BaseModel):
+    question: str
+
+
+def ask_llm(context, question):
+    """Envoie un prompt au modèle"""
+    prompt = f"""
+Voici des extraits du RGPD :
+{context}
+
+En te basant uniquement sur ces extraits, réponds précisément à la question suivante :
+{question}
+"""
+    response = requests.post(
+        LLM_API_URL,
+        json={
+            "model": "llama3",
+            "prompt": prompt,
+            "temperature": 0.2,
+            "stream": False
+        }
     )
-    retriever = vectorstore.as_retriever()
-    # llm = ChatOpenAI(temperature=0)
-    # llm_ollama = Ollama(model="mistral")
-    llm_ollama = Ollama(model="llma3",base_url="http://ollama:11434")
+
+    try:
+        return response.json()["response"]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM Error: {e}")
 
 
-    # Construction de la chaîne QA
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm_ollama,
-        retriever=retriever,
-        # chain_type="stuff",  # important
-        # chain_type_kwargs={"prompt": prompt_template}
+def retrieve_context(query, top_k=5):
+    """Effectue une recherche sémantique dans Qdrant et retourne les textes associés"""
+    query_vector = embedder.encode(query)
+    results = qdrant.search(
+        collection_name=COLLECTION_NAME,
+        query_vector=query_vector,
+        limit=top_k
     )
+    return "\n---\n".join([r.payload["text"] for r in results])
+
+
+@app.post("/ask")
+def ask_question(data: QuestionRequest):
+    context = retrieve_context(data.question)
+    answer = ask_llm(context, data.question)
+    return {"answer": answer}
+
+
+# def build_qa_chain():
+
+#     # Paramètres Qdrant
+#     QDRANT_HOST="localhost" #os.getenv("QDRANT_HOST", "localhost")
+#     QDRANT_PORT= 6333 #int(os.getenv("QDRANT_PORT", 6333))
+#     QDRANT_COLLECTION_NAME="rgpd_chunks"#os.getenv("QDRANT_COLLECTION_NAME", "rgpd_chunks")
+
+
+#     LLM_API_URL = "http://localhost:11434/api/generate" 
+
+
+#     # Connexion à la BDD vectorielle
+#     qdrant_client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+    
+    
+#     # Vectorisation des textes
+#     # embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+#     embeddings=SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+#     # Connexion au vectorstore avec LangChain
+#     vectorstore = Qdrant(
+#         client=qdrant_client,
+#         collection_name=QDRANT_COLLECTION_NAME,
+#         embeddings=embeddings
+#     )
+#     retriever = vectorstore.as_retriever()
+#     # llm = ChatOpenAI(temperature=0)
+#     # llm_ollama = Ollama(model="mistral")
+#     llm_ollama = Ollama(model="llma3",base_url="http://ollama:11434")
+
+
+#     # Construction de la chaîne QA
+#     qa_chain = RetrievalQA.from_chain_type(
+#         llm=llm_ollama,
+#         retriever=retriever,
+#         # chain_type="stuff",  # important
+#         # chain_type_kwargs={"prompt": prompt_template}
+#     )
 
     
-    return qa_chain
+#     return qa_chain
 
 # RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
