@@ -74,7 +74,7 @@ En te basant uniquement sur ces extraits, réponds précisément à la question 
     return StreamingResponse(generate(), media_type="text/plain")
 
 
-def retrieve_context(query, top_k=3):
+def retrieve_context(query, top_k=10):
     """Effectue une recherche sémantique dans Qdrant et retourne les textes associés"""
     query_vector = embedder.encode(query)
     results = qdrant.search(
@@ -96,7 +96,8 @@ def ask_question(data: QuestionRequest):
     print(f"Retrieval time: {t1 - t0:.2f}s")
     print(f"LLM generation time: {t2 - t1:.2f}s")
 
-    return {"answer": answer}
+    #return {"answer": answer} #old version to avoid async_generator error
+    return answer
 
 
 # def build_qa_chain():
