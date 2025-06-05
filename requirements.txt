@@ -12,5 +12,5 @@ pydantic
 sentence-transformers
 transformers 
 accelerate
-langchain_huggingface
+# langchain_huggingface
 qdrant_client
