@@ -3,6 +3,12 @@ Ce projet porte sur l'implémentation d'un RAG (retrieval augmented generation, 
 Le RAG porte uniquement sur les données juridique, plus précisement sur la RGPD européeenne (règlement général de protection des données).
 Les technologies utilisées sont : python, docker, qdrant, streamlit, FastAPI.
 
+## Contributeurs
+- Abdoul Aziz TIENDREBEOGO
+- Axel DAOUDONGAR
+- Mohamed KARE
+- Mohamed Faysal YAMEOGO
+  
 ## Exécution
 Une fois le repo git récupérer, veuillez suivre les étapes suivantes en vous plaçant dans le répertoire rag_lawyer/
 
