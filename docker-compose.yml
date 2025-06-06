@@ -1,17 +1,28 @@
 services:
 
-  mongo:
-    image: mongo:6
-    container_name: mongo_rag
+  # BDD de test
+  # mongo:
+  #   image: mongo:6
+  #   container_name: mongo_rag
+  #   restart: always
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - ./mongo-data:/data/db
+  #   environment:
+  #     MONGO_INITDB_DATABASE: ragdb
+  #     MONGO_INITDB_ROOT_USERNAME: raguser
+  #     MONGO_INITDB_ROOT_PASSWORD: ragpass
+  #   networks:
+  #     - rag-net
+  qdrant:
+    image: qdrant/qdrant
+    container_name: rag_qdrant
     restart: always
     ports:
-      - "27017:27017"
+      - "6333:6333"
     volumes:
-      - ./mongo-data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: ragdb
-      MONGO_INITDB_ROOT_USERNAME: raguser
-      MONGO_INITDB_ROOT_PASSWORD: ragpass
+      - ./qdrant_data:/qdrant/storage
     networks:
       - rag-net
 
@@ -45,7 +56,7 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434  # URL du service Ollama depuis l'API
     depends_on:
       - ollama
-      - mongo
+      - qdrant
     networks:
       - rag-net
 
